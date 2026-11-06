@@ -27,6 +27,16 @@ header{text-align:center;margin:10px 0 24px}
 .cover p{margin:0;color:#c9d7f1;font-size:13px}
 .photo-fallback{display:none;color:#52627b;text-align:center;padding:20px;font-size:14px}
 .photo-fallback.show{display:block}
+
+.result-overlay{position:absolute;inset:0;z-index:6;display:grid;place-items:center;overflow:hidden;visibility:hidden;pointer-events:none}
+.result-overlay.show{visibility:visible}
+.result-word{position:relative;z-index:2;padding:14px 28px;border:2px solid #ffffffa8;border-radius:22px;background:#ffffffed;color:#167b4c;font-size:clamp(34px,9vw,54px);font-weight:1000;letter-spacing:-2px;text-shadow:0 3px 0 #d9f7e7;box-shadow:0 12px 40px #14243b45;animation:resultFade 1.5s ease both}
+.result-overlay.wrong .result-word{color:#d64c5b;text-shadow:0 3px 0 #ffe0e4;animation:wrongFade 1.35s ease both}
+@keyframes resultFade{0%{opacity:0;transform:scale(.55)}18%{opacity:1;transform:scale(1.12)}32%{transform:scale(1)}78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9)}}
+@keyframes wrongFade{0%{opacity:0;transform:scale(.65)}18%{opacity:1;transform:scale(1.08)}35%{transform:scale(1)}72%{opacity:1}100%{opacity:0;transform:scale(.92)}}
+.firework{position:absolute;left:50%;top:50%;width:9px;height:15px;border-radius:3px;background:hsl(var(--hue),95%,58%);opacity:0;animation:burst 1.15s cubic-bezier(.15,.65,.3,1) forwards;transform:translate(-50%,-50%)}
+@keyframes burst{0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0)}12%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.75) rotate(var(--rot))}}
+
 .reveal{position:absolute;z-index:2;bottom:14px;left:50%;transform:translateX(-50%);border:0;border-radius:999px;padding:12px 24px;background:#fff;color:#263b60;font-size:14px;font-weight:900;box-shadow:0 5px 18px #0003;white-space:nowrap}
 .reveal:active{transform:translateX(-50%) scale(.97)}
 .cover.hidden .reveal{display:none}
@@ -64,6 +74,7 @@ input:focus{border-color:#6d98ee;box-shadow:0 0 0 3px #6d98ee20}
       <p>사진은 아직 비밀이에요</p>
       <button class="reveal" id="reveal" type="button">사진 보기 👀</button>
     </div>
+    <div class="result-overlay" id="result-overlay" aria-live="polite"><div class="result-word" id="result-word"></div></div>
   </div>
 
   <div class="section-title">이 선수는 누구일까요?</div>
@@ -109,15 +120,78 @@ const players = [
  {name:"해리 케인",aliases:["harry kane","kane","케인"],wiki:"Harry Kane",nation:"잉글랜드",status:"현역",career:"토트넘 홋스퍼 · 바이에른 뮌헨 · 2018 월드컵 골든부트 · 분데스리가 우승",height:188,weight:86},
  {name:"케빈 더브라위너",aliases:["kevin de bruyne","de bruyne","더브라위너","데브라이너"],wiki:"Kevin De Bruyne",nation:"벨기에",status:"현역",career:"첼시 · VfL 볼프스부르크 · 맨체스터 시티 · 프리미어리그 우승 다수 · UEFA 챔피언스리그 우승",height:181,weight:70},
  {name:"비니시우스 주니오르",aliases:["vinicius junior","vinicius","비니시우스"],wiki:"Vinícius Júnior",nation:"브라질",status:"현역",career:"레알 마드리드 · UEFA 챔피언스리그 우승 · 라리가 우승",height:176,weight:73}
-];
+
+ {name:"주드 벨링엄",aliases:["jude bellingham","bellingham","벨링엄"],wiki:"Jude Bellingham",nation:"잉글랜드",status:"현역",career:"보루시아 도르트문트 · 레알 마드리드 · UEFA 챔피언스리그 우승",height:186,weight:75},
+ {name:"부카요 사카",aliases:["bukayo saka","saka","사카"],wiki:"Bukayo Saka",nation:"잉글랜드",status:"현역",career:"아스널 · 잉글랜드 국가대표 · UEFA 유로 2020·2024 준우승",height:178,weight:72},
+ {name:"필 포든",aliases:["phil foden","foden","포든"],wiki:"Phil Foden",nation:"잉글랜드",status:"현역",career:"맨체스터 시티 · 프리미어리그 우승 다수 · UEFA 챔피언스리그 우승",height:171,weight:70},
+ {name:"로드리",aliases:["rodri","rodrigo hernandez","로드리고 에르난데스"],wiki:"Rodri (footballer, born 1996)",nation:"스페인",status:"현역",career:"아틀레티코 마드리드 · 맨체스터 시티 · UEFA 유로 2024 우승 · 2024 발롱도르",height:191,weight:82},
+ {name:"라민 야말",aliases:["lamine yamal","yamal","야말"],wiki:"Lamine Yamal",nation:"스페인",status:"현역",career:"FC 바르셀로나 · UEFA 유로 2024 우승 · 유로 2024 영플레이어상",height:180,weight:72},
+ {name:"페드리",aliases:["pedri","pedri gonzalez","페드리 곤살레스"],wiki:"Pedri",nation:"스페인",status:"현역",career:"FC 바르셀로나 · UEFA 유로 2020 최우수 영플레이어",height:174,weight:60},
+ {name:"앙투안 그리즈만",aliases:["antoine griezmann","griezmann","그리즈만"],wiki:"Antoine Griezmann",nation:"프랑스",status:"현역",career:"아틀레티코 마드리드 · FC 바르셀로나 · 2018 월드컵 우승",height:176,weight:73},
+ {name:"라우타로 마르티네스",aliases:["lautaro martinez","lautaro","마르티네스"],wiki:"Lautaro Martínez",nation:"아르헨티나",status:"현역",career:"인터 밀란 · 2022 월드컵 우승 · 코파 아메리카 우승",height:174,weight:72},
+ {name:"훌리안 알바레스",aliases:["julian alvarez","alvarez","알바레스"],wiki:"Julián Álvarez",nation:"아르헨티나",status:"현역",career:"맨체스터 시티 · 아틀레티코 마드리드 · 2022 월드컵 우승",height:170,weight:71},
+ {name:"페데리코 발베르데",aliases:["federico valverde","valverde","발베르데"],wiki:"Federico Valverde",nation:"우루과이",status:"현역",career:"레알 마드리드 · UEFA 챔피언스리그 우승 · 라리가 우승",height:182,weight:78},
+ {name:"버질 판데이크",aliases:["virgil van dijk","van dijk","반다이크","판데이크"],wiki:"Virgil van Dijk",nation:"네덜란드",status:"현역",career:"사우샘프턴 · 리버풀 · 프리미어리그 우승 · UEFA 챔피언스리그 우승",height:195,weight:92},
+ {name:"알리송 베케르",aliases:["alisson becker","alisson","알리송"],wiki:"Alisson Becker",nation:"브라질",status:"현역",career:"AS 로마 · 리버풀 · 프리미어리그 우승 · UEFA 챔피언스리그 우승",height:193,weight:91},
+ {name:"자말 무시알라",aliases:["jamal musiala","musiala","무시알라"],wiki:"Jamal Musiala",nation:"독일",status:"현역",career:"바이에른 뮌헨 · 분데스리가 우승",height:184,weight:72},
+ {name:"플로리안 비르츠",aliases:["florian wirtz","wirtz","비르츠"],wiki:"Florian Wirtz",nation:"독일",status:"현역",career:"바이어 레버쿠젠 · 분데스리가 우승 · 독일 올해의 축구 선수",height:177,weight:70},
+ {name:"데클란 라이스",aliases:["declan rice","rice","라이스"],wiki:"Declan Rice",nation:"잉글랜드",status:"현역",career:"웨스트햄 유나이티드 · 아스널 · UEFA 유로 2020·2024 준우승",height:188,weight:80},
+ {name:"빅터 오시멘",aliases:["victor osimhen","osimhen","오시멘"],wiki:"Victor Osimhen",nation:"나이지리아",status:"현역",career:"나폴리 · 갈라타사라이 · 2022-23 세리에 A 우승",height:185,weight:78},
+ {name:"로멜루 루카쿠",aliases:["romelu lukaku","lukaku","루카쿠"],wiki:"Romelu Lukaku",nation:"벨기에",status:"현역",career:"인터 밀란 · 첼시 · AS 로마 · 세리에 A 우승",height:191,weight:93},
+ {name:"하칸 찰하노을루",aliases:[" hakan calhanoglu","hakan calhanoglu","찰하노을루"],wiki:"Hakan Çalhanoğlu",nation:"튀르키예",status:"현역",career:"AC 밀란 · 인터 밀란 · 세리에 A 우승",height:178,weight:69},
+ {name:"크리스티안 풀리식",aliases:["christian pulisic","pulisic","풀리식"],wiki:"Christian Pulisic",nation:"미국",status:"현역",career:"첼시 · AC 밀란 · UEFA 챔피언스리그 우승",height:177,weight:73},
+ {name:"호나우두",aliases:["ronaldo nazario","ronaldo phenomenon","호나우두 나자리우"],wiki:"Ronaldo (Brazilian footballer)",nation:"브라질",status:"은퇴",career:"인터 밀란 · 레알 마드리드 · 1994·2002 월드컵 우승 · 발롱도르 2회",height:183,weight:90},
+ {name:"펠레",aliases:["pele","에드송 아란치스 두 나시멘투"],wiki:"Pelé",nation:"브라질",status:"은퇴",career:"산투스 · 뉴욕 코스모스 · 월드컵 우승 3회",height:173,weight:75},
+ {name:"디에고 마라도나",aliases:["diego maradona","maradona","마라도나"],wiki:"Diego Maradona",nation:"아르헨티나",status:"은퇴",career:"나폴리 · FC 바르셀로나 · 1986 월드컵 우승 · 1986 월드컵 골든볼",height:165,weight:70},
+ {name:"요한 크루이프",aliases:["johan cruyff","cruyff","크루이프"],wiki:"Johan Cruyff",nation:"네덜란드",status:"은퇴",career:"아약스 · FC 바르셀로나 · 발롱도르 3회 · 토털 풋볼의 상징",height:180,weight:71},
+ {name:"파올로 말디니",aliases:["paolo maldini","maldini","말디니"],wiki:"Paolo Maldini",nation:"이탈리아",status:"은퇴",career:"AC 밀란 원클럽맨 · UEFA 챔피언스리그 우승 5회 · 2006 월드컵 준우승",height:186,weight:85},
+ {name:"로베르토 카를루스",aliases:["roberto carlos","roberto carlos da silva","호베르투 카를루스"],wiki:"Roberto Carlos",nation:"브라질",status:"은퇴",career:"레알 마드리드 · 페네르바흐체 · 2002 월드컵 우승 · UEFA 챔피언스리그 우승 3회",height:168,weight:70},
+ {name:"카푸",aliases:["cafu","마르쿠스 카푸"],wiki:"Cafu",nation:"브라질",status:"은퇴",career:"AS 로마 · AC 밀란 · 월드컵 우승 2회 · 브라질 대표팀 주장",height:176,weight:75},
+ {name:"스티븐 제라드",aliases:["steven gerrard","gerrard","제라드"],wiki:"Steven Gerrard",nation:"잉글랜드",status:"은퇴",career:"리버풀 · 2005 UEFA 챔피언스리그 우승 · 2006 FA컵 우승",height:183,weight:83},
+ {name:"프랭크 램파드",aliases:["frank lampard","lampard","램파드"],wiki:"Frank Lampard",nation:"잉글랜드",status:"은퇴",career:"첼시 · 맨체스터 시티 · UEFA 챔피언스리그 우승 · 첼시 역대 최다 득점 미드필더",height:184,weight:90},
+ {name:"웨인 루니",aliases:["wayne rooney","rooney","루니"],wiki:"Wayne Rooney",nation:"잉글랜드",status:"은퇴",career:"맨체스터 유나이티드 · 에버턴 · 프리미어리그 우승 5회 · UEFA 챔피언스리그 우승",height:176,weight:83},
+ {name:"디디에 드로그바",aliases:["didier drogba","drogba","드로그바"],wiki:"Didier Drogba",nation:"코트디부아르",status:"은퇴",career:"첼시 · 갈라타사라이 · UEFA 챔피언스리그 우승 · 아프리카 올해의 선수 2회",height:189,weight:91},
+ {name:"사뮈엘 에토오",aliases:["samuel eto'o","eto'o","eto","에투"],wiki:"Samuel Eto'o",nation:"카메룬",status:"은퇴",career:"FC 바르셀로나 · 인터 밀란 · UEFA 챔피언스리그 우승 3회",height:180,weight:75},
+ {name:"안드레아 피를로",aliases:["andrea pirlo","pirlo","피를로"],wiki:"Andrea Pirlo",nation:"이탈리아",status:"은퇴",career:"AC 밀란 · 유벤투스 · 2006 월드컵 우승 · UEFA 챔피언스리그 우승 2회",height:177,weight:68},
+ {name:"프란체스코 토티",aliases:["francesco totti","totti","토티"],wiki:"Francesco Totti",nation:"이탈리아",status:"은퇴",career:"AS 로마 원클럽맨 · 2006 월드컵 우승 · 2000-01 세리에 A 우승",height:180,weight:82},
+ {name:"미로슬라프 클로제",aliases:["miroslav klose","klose","클로제"],wiki:"Miroslav Klose",nation:"독일",status:"은퇴",career:"라치오 · 바이에른 뮌헨 · 2014 월드컵 우승 · 월드컵 역대 최다 득점자",height:184,weight:84},
+ {name:"아르연 로번",aliases:["arjen robben","robben","로번","로벤"],wiki:"Arjen Robben",nation:"네덜란드",status:"은퇴",career:"첼시 · 레알 마드리드 · 바이에른 뮌헨 · 2013 UEFA 챔피언스리그 우승",height:180,weight:80},
+ {name:"프랑크 리베리",aliases:["franck ribery","ribery","리베리"],wiki:"Franck Ribéry",nation:"프랑스",status:"은퇴",career:"바이에른 뮌헨 · 2013 트레블 · UEFA 챔피언스리그 우승",height:170,weight:72},
+ {name:"카를레스 푸욜",aliases:["carles puyol","puyol","푸욜"],wiki:"Carles Puyol",nation:"스페인",status:"은퇴",career:"FC 바르셀로나 원클럽맨 · 2010 월드컵 우승 · UEFA 챔피언스리그 우승 3회",height:178,weight:80},
+ {name:"세르히오 라모스",aliases:["sergio ramos","ramos","라모스"],wiki:"Sergio Ramos",nation:"스페인",status:"현역",career:"레알 마드리드 · 파리 생제르맹 · 2010 월드컵 우승 · UEFA 챔피언스리그 우승 4회",height:184,weight:82},
+ {name:"이케르 카시야스",aliases:["iker casillas","casillas","카시야스"],wiki:"Iker Casillas",nation:"스페인",status:"은퇴",career:"레알 마드리드 · FC 포르투 · 2010 월드컵 우승 · UEFA 유로 2008·2012 우승",height:182,weight:84},
+ {name:"다비드 비야",aliases:["david villa","villa","비야"],wiki:"David Villa",nation:"스페인",status:"은퇴",career:"발렌시아 · FC 바르셀로나 · 2010 월드컵 우승 · UEFA 유로 2008 우승",height:175,weight:69},
+ ];
 const $=id=>document.getElementById(id);
 let current=null,lastIndex=-1,score=0,answered=false;
 function normalize(value){return value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9가-힣]/g,"")}
+function showResult(type){
+ const overlay=$("result-overlay");
+ overlay.className="result-overlay show"+(type==="wrong"?" wrong":"");
+ const word=document.createElement("div");
+ word.className="result-word";
+ word.textContent=type==="correct"?"정답!":"오답!";
+ overlay.replaceChildren(word);
+ if(type==="correct"){
+  for(let i=0;i<34;i++){
+   const piece=document.createElement("span");
+   const angle=(Math.PI*2*i/34)+(Math.random()-.5)*.35;
+   const distance=85+Math.random()*145;
+   piece.className="firework";
+   piece.style.setProperty("--dx",Math.cos(angle)*distance+"px");
+   piece.style.setProperty("--dy",Math.sin(angle)*distance+"px");
+   piece.style.setProperty("--rot",(Math.random()*900-450)+"deg");
+   piece.style.setProperty("--hue",Math.floor(Math.random()*360));
+   overlay.appendChild(piece);
+  }
+ }
+}
 function choosePlayer(){
  let index; do{index=Math.floor(Math.random()*players.length)}while(index===lastIndex);
  lastIndex=index;current=players[index];answered=false;
  $("guess").value="";$("guess").disabled=false;$("submit").disabled=false;
  $("feedback").className="feedback";$("feedback").textContent="선수 정보를 살펴보고 이름을 입력하세요.";
+ $("result-overlay").className="result-overlay";$("result-overlay").innerHTML='<div class="result-word" id="result-word"></div>';
  $("cover").classList.remove("hidden");$("player-photo").classList.remove("loaded");$("player-photo").removeAttribute("src");$("photo-fallback").classList.remove("show");
  $("nationality").textContent=current.nation;$("status").textContent=current.status;
  $("career").textContent=current.career;$("height").textContent=current.height+"cm";$("weight").textContent=current.weight+"kg";
@@ -148,11 +222,15 @@ $("guess-form").addEventListener("submit",event=>{
  const accepted=[current.name,...current.aliases].map(normalize);
  if(accepted.includes(normalize(raw))){
   answered=true;score++;$("score").textContent=score;
-  $("feedback").className="feedback good";$("feedback").textContent="정답! "+current.name+" 선수입니다. 다음 선수로 넘어갑니다!";
+  $("feedback").className="feedback";$("feedback").textContent="";
+  $("cover").classList.add("hidden");
+  if(!$("player-photo").classList.contains("loaded"))$("photo-fallback").classList.add("show");
   $("guess").disabled=true;$("submit").disabled=true;
-  setTimeout(choosePlayer,1400);
+  showResult("correct");
+  setTimeout(choosePlayer,1500);
  }else{
-  $("feedback").className="feedback bad";$("feedback").textContent="아쉽지만 정답이 아니에요. 다시 생각해 보세요!";
+  $("feedback").className="feedback";$("feedback").textContent="";
+  showResult("wrong");
   $("guess").select();
  }
 });
