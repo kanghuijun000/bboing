@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7fb">
+  <meta name="description" content="버튼을 누르면 무작위 이미지가 뽀잉!">
+  <title>뽀잉</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root { color-scheme: light; font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif; }
+    body {
+      margin: 0; min-height: 100svh; overflow-x: hidden;
+      display: grid; place-items: center; padding: 28px 20px;
+      color: #392c3a;
+      background: radial-gradient(circle at 15% 15%, #ffe5f0 0, transparent 34%),
+                  radial-gradient(circle at 85% 80%, #e9e6ff 0, transparent 36%), #fff9fc;
+    }
+    main { width: min(100%, 520px); text-align: center; }
+    .brand { font-size: clamp(54px, 14vw, 82px); line-height: 1; font-weight: 950; letter-spacing: -5px; color: #ff70a6; text-shadow: 0 5px 0 #ffd0e1; }
+    .subtitle { margin: 16px 0 28px; color: #947d8d; font-size: 14px; letter-spacing: .04em; }
+    .stage {
+      position: relative; width: 100%; aspect-ratio: 1 / 1;
+      display: grid; place-items: center; overflow: hidden;
+      border: 2px dashed #f4c8da; border-radius: 30px;
+      background: rgba(255,255,255,.72); box-shadow: 0 18px 50px #dca9c522;
+    }
+    .placeholder { padding: 24px; color: #c5aaba; font-size: 18px; font-weight: 700; }
+    .placeholder span { display: block; font-size: 54px; margin-bottom: 12px; }
+    #picture { display: none; width: 100%; height: 100%; object-fit: cover; }
+    #picture.show { display: block; animation: pop .48s cubic-bezier(.16,1.4,.42,1) both; }
+    .spark { position: absolute; z-index: 2; pointer-events: none; font-size: 28px; animation: sparkle .7s ease-out forwards; }
+    @keyframes pop { 0% { opacity: 0; transform: scale(.55) rotate(-7deg); } 70% { transform: scale(1.06) rotate(2deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+    @keyframes sparkle { 0% { opacity: 0; transform: translateY(10px) scale(.4) rotate(-20deg); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-55px) scale(1.35) rotate(25deg); } }
+    button {
+      margin-top: 24px; width: 100%; border: 0; border-radius: 999px;
+      padding: 19px 24px; color: white; background: linear-gradient(135deg, #ff78aa, #ff91bd);
+      box-shadow: 0 8px 0 #e85f94, 0 14px 28px #e875a344;
+      font: inherit; font-size: 21px; font-weight: 900; cursor: pointer;
+      transition: transform .12s, box-shadow .12s; -webkit-tap-highlight-color: transparent;
+    }
+    button:active { transform: translateY(6px) scale(.985); box-shadow: 0 2px 0 #e85f94, 0 7px 15px #e875a333; }
+    button:disabled { opacity: .7; cursor: wait; }
+    .hint { margin-top: 18px; min-height: 20px; color: #ad91a2; font-size: 12px; }
+    @media (min-width: 600px) { .stage { aspect-ratio: 1.08 / 1; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">뽀잉!</div>
+    <p class="subtitle">아무 생각 없이 눌러보세요.</p>
+    <section class="stage" id="stage" aria-live="polite">
+      <div class="placeholder" id="placeholder"><span>🎁</span>무엇이 나올지는 아무도 몰라요</div>
+      <img id="picture" alt="무작위로 선택된 이미지">
+    </section>
+    <button id="popButton" type="button">뽀잉! ✨</button>
+    <p class="hint" id="hint">버튼을 누르면 이미지가 나타나요</p>
+  </main>
+  <script>
+    const button = document.getElementById('popButton');
+    const picture = document.getElementById('picture');
+    const placeholder = document.getElementById('placeholder');
+    const hint = document.getElementById('hint');
+    const stage = document.getElementById('stage');
+    let previousSeed = '';
+    function burst() {
+      const symbols = ['✨', '💫', '⭐', '🌸', '💖'];
+      for (let i = 0; i < 7; i++) {
+        const item = document.createElement('span');
+        item.className = 'spark';
+        item.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        item.style.left = (8 + Math.random() * 84) + '%';
+        item.style.top = (12 + Math.random() * 76) + '%';
+        stage.appendChild(item);
+        item.addEventListener('animationend', () => item.remove(), { once: true });
+      }
+    }
+    function nextSeed() {
+      let seed;
+      do { seed = Math.random().toString(36).slice(2, 12); } while (seed === previousSeed);
+      previousSeed = seed;
+      return seed;
+    }
+    button.addEventListener('click', () => {
+      button.disabled = true;
+      hint.textContent = '두근두근…';
+      const seed = nextSeed();
+      const url = 'https://picsum.photos/seed/' + seed + '/900/900';
+      const nextImage = new Image();
+      nextImage.onload = () => {
+        picture.src = url;
+        picture.classList.remove('show');
+        void picture.offsetWidth;
+        picture.classList.add('show');
+        placeholder.hidden = true;
+        burst();
+        hint.textContent = '이번 뽀잉은 이거!';
+        button.disabled = false;
+      };
+      nextImage.onerror = () => {
+        hint.textContent = '이미지를 불러오지 못했어요. 한 번 더 뽀잉!';
+        button.disabled = false;
+      };
+      nextImage.src = url;
+    });
+  </script>
+</body>
+</html>
