@@ -421,20 +421,14 @@ function checkGuess(){
  const input=$("guess");
  const raw=String(input.value||"").trim();
  const normalizedGuess=normalize(raw);
- // 빈 문자열, 공백, 기호만 입력된 값은 어떤 경우에도 정답 비교를 하지 않는다.
- if(raw.length===0||normalizedGuess.length===0){
-  $("feedback").className="feedback bad";
-  $("feedback").textContent="선수 이름을 먼저 입력해 주세요.";
-  input.focus();
-  return;
- }
+ // 입력이 비어 있어도 정답 확인을 누르면 오답 판정을 중앙에 표시한다.
  const accepted=[current.name,...current.aliases].map(value=>normalize(String(value||""))).filter(value=>value.length>0);
- const isCorrect=accepted.some(answer=>answer.length>0&&answer===normalizedGuess);
+ const isCorrect=normalizedGuess.length>0&&accepted.some(answer=>answer.length>0&&answer===normalizedGuess);
  if(!isCorrect){
   $("feedback").className="feedback";
   $("feedback").textContent="";
   showResult("wrong");
-  input.select();
+  if(raw.length>0)input.select();
   return;
  }
  answered=true;
