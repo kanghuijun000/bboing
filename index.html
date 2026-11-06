@@ -78,9 +78,9 @@ input:focus{border-color:#6d98ee;box-shadow:0 0 0 3px #6d98ee20}
   </div>
 
   <div class="section-title">이 선수는 누구일까요?</div>
-  <form class="input-row" id="guess-form">
+  <form class="input-row" id="guess-form" novalidate>
     <input id="guess" type="text" placeholder="선수 이름 입력 (한글 / 영어)" autocomplete="off" autocapitalize="off" required>
-    <button class="submit" id="submit" type="submit">정답 확인</button>
+    <button class="submit" id="submit" type="button">정답 확인</button>
   </form>
   <p class="feedback" id="feedback" aria-live="polite">선수 정보를 살펴보고 이름을 입력하세요.</p>
 
@@ -416,25 +416,48 @@ $("reveal").addEventListener("click",()=>{
  $("cover").classList.add("hidden");
  if(!$("player-photo").classList.contains("loaded"))$("photo-fallback").classList.add("show");
 });
-$("guess-form").addEventListener("submit",event=>{
- event.preventDefault();if(answered)return;
- const raw=$("guess").value.trim();
+function checkGuess(){
+ if(answered)return;
+ const input=$("guess");
+ const raw=String(input.value||"").trim();
  const normalizedGuess=normalize(raw);
- // 공백·기호·제로폭 문자만 입력된 경우도 정답 비교 전에 차단
- if(!normalizedGuess){$("feedback").className="feedback bad";$("feedback").textContent="선수 이름을 먼저 입력해 주세요.";return}
- const accepted=[current.name,...current.aliases].map(normalize).filter(Boolean);
- if(accepted.includes(normalizedGuess)){
-  answered=true;score++;$("score").textContent=score;
-  $("feedback").className="feedback";$("feedback").textContent="";
-  $("cover").classList.add("hidden");
-  if(!$("player-photo").classList.contains("loaded"))$("photo-fallback").classList.add("show");
-  $("guess").disabled=true;$("submit").disabled=true;
-  showResult("correct");
-  setTimeout(choosePlayer,1500);
- }else{
-  $("feedback").className="feedback";$("feedback").textContent="";
+ // 빈 문자열, 공백, 기호만 입력된 값은 어떤 경우에도 정답 비교를 하지 않는다.
+ if(raw.length===0||normalizedGuess.length===0){
+  $("feedback").className="feedback bad";
+  $("feedback").textContent="선수 이름을 먼저 입력해 주세요.";
+  input.focus();
+  return;
+ }
+ const accepted=[current.name,...current.aliases].map(value=>normalize(String(value||""))).filter(value=>value.length>0);
+ const isCorrect=accepted.some(answer=>answer.length>0&&answer===normalizedGuess);
+ if(!isCorrect){
+  $("feedback").className="feedback";
+  $("feedback").textContent="";
   showResult("wrong");
-  $("guess").select();
+  input.select();
+  return;
+ }
+ answered=true;
+ score++;
+ $("score").textContent=score;
+ $("feedback").className="feedback";
+ $("feedback").textContent="";
+ $("cover").classList.add("hidden");
+ if(!$("player-photo").classList.contains("loaded"))$("photo-fallback").classList.add("show");
+ input.disabled=true;
+ $("submit").disabled=true;
+ showResult("correct");
+ setTimeout(choosePlayer,1500);
+}
+$("submit").addEventListener("click",checkGuess);
+$("guess-form").addEventListener("submit",event=>{
+ event.preventDefault();
+ checkGuess();
+});
+$("guess").addEventListener("keydown",event=>{
+ if(event.key==="Enter"){
+  event.preventDefault();
+  checkGuess();
  }
 });
 choosePlayer();
