@@ -370,7 +370,7 @@ const players = [
  ];
 const $=id=>document.getElementById(id);
 let current=null,lastIndex=-1,score=0,answered=false;
-function normalize(value){return value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9가-힣]/g,"")}
+function normalize(value){return value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").normalize("NFC").replace(/[^a-z0-9가-힣]/g,"")}
 function showResult(type){
  const overlay=$("result-overlay");
  overlay.className="result-overlay show"+(type==="wrong"?" wrong":"");
@@ -395,7 +395,7 @@ function showResult(type){
 function choosePlayer(){
  let index; do{index=Math.floor(Math.random()*players.length)}while(index===lastIndex);
  lastIndex=index;current=players[index];answered=false;
- $("guess").value="";$("guess").disabled=false;$("submit").disabled=false;
+ $("guess").value="";$("guess").disabled=false;$("submit").disabled=false;$("give-up").disabled=false;
  $("feedback").className="feedback";$("feedback").textContent="선수 정보를 살펴보고 이름을 입력하세요.";
  $("result-overlay").className="result-overlay";$("result-overlay").innerHTML='<div class="result-word" id="result-word"></div>';
  $("cover").classList.remove("hidden");$("player-photo").classList.remove("loaded");$("player-photo").removeAttribute("src");$("photo-fallback").classList.remove("show");
