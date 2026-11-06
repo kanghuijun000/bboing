@@ -80,7 +80,7 @@ input:focus{border-color:#6d98ee;box-shadow:0 0 0 3px #6d98ee20}
   <div class="section-title">이 선수는 누구일까요?</div>
   <form class="input-row" id="guess-form" novalidate>
     <input id="guess" type="text" placeholder="선수 이름 입력 (한글 / 영어)" autocomplete="off" autocapitalize="off" required>
-    <button class="submit" id="submit" type="button">정답 확인</button>
+    <button class="submit" id="submit" type="submit">정답 확인</button>
   </form>
   <p class="feedback" id="feedback" aria-live="polite">선수 정보를 살펴보고 이름을 입력하세요.</p>
 
@@ -443,16 +443,10 @@ function checkGuess(){
  showResult("correct");
  setTimeout(choosePlayer,1500);
 }
-$("submit").addEventListener("click",checkGuess);
+// 버튼 클릭과 Enter 입력을 모두 하나의 form 제출 경로로 처리한다.
 $("guess-form").addEventListener("submit",event=>{
  event.preventDefault();
  checkGuess();
-});
-$("guess").addEventListener("keydown",event=>{
- if(event.key==="Enter"){
-  event.preventDefault();
-  checkGuess();
- }
 });
 choosePlayer();
 </script>
