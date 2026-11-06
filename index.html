@@ -79,7 +79,7 @@ input:focus{border-color:#6d98ee;box-shadow:0 0 0 3px #6d98ee20}
 
   <div class="section-title">이 선수는 누구일까요?</div>
   <form class="input-row" id="guess-form">
-    <input id="guess" type="text" placeholder="선수 이름 입력 (한글 / 영어)" autocomplete="off" autocapitalize="off">
+    <input id="guess" type="text" placeholder="선수 이름 입력 (한글 / 영어)" autocomplete="off" autocapitalize="off" required>
     <button class="submit" id="submit" type="submit">정답 확인</button>
   </form>
   <p class="feedback" id="feedback" aria-live="polite">선수 정보를 살펴보고 이름을 입력하세요.</p>
@@ -419,9 +419,11 @@ $("reveal").addEventListener("click",()=>{
 $("guess-form").addEventListener("submit",event=>{
  event.preventDefault();if(answered)return;
  const raw=$("guess").value.trim();
- if(!raw){$("feedback").className="feedback bad";$("feedback").textContent="선수 이름을 먼저 입력해 주세요.";return}
- const accepted=[current.name,...current.aliases].map(normalize);
- if(accepted.includes(normalize(raw))){
+ const normalizedGuess=normalize(raw);
+ // 공백·기호·제로폭 문자만 입력된 경우도 정답 비교 전에 차단
+ if(!normalizedGuess){$("feedback").className="feedback bad";$("feedback").textContent="선수 이름을 먼저 입력해 주세요.";return}
+ const accepted=[current.name,...current.aliases].map(normalize).filter(Boolean);
+ if(accepted.includes(normalizedGuess)){
   answered=true;score++;$("score").textContent=score;
   $("feedback").className="feedback";$("feedback").textContent="";
   $("cover").classList.add("hidden");
