@@ -68,7 +68,7 @@ input:focus{border-color:#6d98ee;box-shadow:0 0 0 3px #6d98ee20}
   <div class="logo">뽀잉!</div>
   <p class="subtitle">사진과 선수 정보를 보고 정답을 맞혀보세요</p>
 </header>
-<div class="topline"><span id="round-label">PLAYER QUIZ</span><span class="score">정답 <b id="score">0</b>개</span></div>
+<div class="topline"><span id="round-label">PLAYER QUIZ</span></div>
 <section class="card">
   <div class="photo-wrap">
     <img id="player-photo" alt="정답 축구선수 사진">
@@ -369,7 +369,7 @@ const players = [
  {name:"조엘 캠벨",aliases:["joel campbell","campbell","캠벨"],wiki:"Joel Campbell",nation:"코스타리카",status:"현역",career:"아스널 · 레알 베티스 · 2014 월드컵 8강",height:178,weight:71},
  ];
 const $=id=>document.getElementById(id);
-let current=null,lastIndex=-1,score=0,answered=false;
+let current=null,lastIndex=-1,answered=false;
 function normalize(value){return value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").normalize("NFC").replace(/[^a-z0-9가-힣]/g,"")}
 function showResult(type){
  const overlay=$("result-overlay");
@@ -401,7 +401,7 @@ function choosePlayer(){
  $("cover").classList.remove("hidden");$("player-photo").classList.remove("loaded");$("player-photo").removeAttribute("src");$("photo-fallback").classList.remove("show");
  $("nationality").textContent=current.nation;$("status").textContent=current.status;
  $("career").textContent=current.career;$("height").textContent=current.height+"cm";$("weight").textContent=current.weight+"kg";
- $("round-label").textContent="PLAYER QUIZ · "+(score+1)+"번째 도전";
+ $("round-label").textContent="PLAYER QUIZ";
  loadPlayerPhoto(current);
 }
 async function loadPlayerPhoto(player){
@@ -438,7 +438,6 @@ function checkGuess(){
  }
  answered=true;
  score++;
- $("score").textContent=score;
  $("feedback").className="feedback";
  $("feedback").textContent="";
  $("cover").classList.add("hidden");
