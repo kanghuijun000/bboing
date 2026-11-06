@@ -1,109 +1,162 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#fff7fb">
-  <meta name="description" content="버튼을 누르면 무작위 이미지가 뽀잉!">
-  <title>뽀잉</title>
-  <style>
-    * { box-sizing: border-box; }
-    :root { color-scheme: light; font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif; }
-    body {
-      margin: 0; min-height: 100svh; overflow-x: hidden;
-      display: grid; place-items: center; padding: 28px 20px;
-      color: #392c3a;
-      background: radial-gradient(circle at 15% 15%, #ffe5f0 0, transparent 34%),
-                  radial-gradient(circle at 85% 80%, #e9e6ff 0, transparent 36%), #fff9fc;
-    }
-    main { width: min(100%, 520px); text-align: center; }
-    .brand { font-size: clamp(54px, 14vw, 82px); line-height: 1; font-weight: 950; letter-spacing: -5px; color: #ff70a6; text-shadow: 0 5px 0 #ffd0e1; }
-    .subtitle { margin: 16px 0 28px; color: #947d8d; font-size: 14px; letter-spacing: .04em; }
-    .stage {
-      position: relative; width: 100%; aspect-ratio: 1 / 1;
-      display: grid; place-items: center; overflow: hidden;
-      border: 2px dashed #f4c8da; border-radius: 30px;
-      background: rgba(255,255,255,.72); box-shadow: 0 18px 50px #dca9c522;
-    }
-    .placeholder { padding: 24px; color: #c5aaba; font-size: 18px; font-weight: 700; }
-    .placeholder span { display: block; font-size: 54px; margin-bottom: 12px; }
-    #picture { display: none; width: 100%; height: 100%; object-fit: cover; }
-    #picture.show { display: block; animation: pop .48s cubic-bezier(.16,1.4,.42,1) both; }
-    .spark { position: absolute; z-index: 2; pointer-events: none; font-size: 28px; animation: sparkle .7s ease-out forwards; }
-    @keyframes pop { 0% { opacity: 0; transform: scale(.55) rotate(-7deg); } 70% { transform: scale(1.06) rotate(2deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
-    @keyframes sparkle { 0% { opacity: 0; transform: translateY(10px) scale(.4) rotate(-20deg); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-55px) scale(1.35) rotate(25deg); } }
-    button {
-      margin-top: 24px; width: 100%; border: 0; border-radius: 999px;
-      padding: 19px 24px; color: white; background: linear-gradient(135deg, #ff78aa, #ff91bd);
-      box-shadow: 0 8px 0 #e85f94, 0 14px 28px #e875a344;
-      font: inherit; font-size: 21px; font-weight: 900; cursor: pointer;
-      transition: transform .12s, box-shadow .12s; -webkit-tap-highlight-color: transparent;
-    }
-    button:active { transform: translateY(6px) scale(.985); box-shadow: 0 2px 0 #e85f94, 0 7px 15px #e875a333; }
-    button:disabled { opacity: .7; cursor: wait; }
-    .hint { margin-top: 18px; min-height: 20px; color: #ad91a2; font-size: 12px; }
-    @media (min-width: 600px) { .stage { aspect-ratio: 1.08 / 1; } }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f7fb">
+<meta name="description" content="사진과 커리어 정보로 축구선수를 맞혀보세요.">
+<title>뽀잉 - 축구선수 맞추기</title>
+<style>
+:root{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Noto Sans KR",sans-serif;color:#172033;background:#f5f7fb;font-synthesis:none}
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;padding:26px 16px 42px;background:radial-gradient(circle at 10% 0%,#e4edff 0,transparent 34%),radial-gradient(circle at 95% 75%,#e8e9ff 0,transparent 32%),#f5f7fb}
+main{width:min(100%,540px);margin:0 auto}
+header{text-align:center;margin:10px 0 24px}
+.logo{font-size:54px;line-height:1;font-weight:1000;letter-spacing:-4px;color:#3975e8}
+.subtitle{margin:11px 0 0;color:#78849a;font-size:14px}
+.topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:#6f7c91;font-size:13px;font-weight:750}
+.score{padding:8px 12px;border-radius:999px;background:#e8efff;color:#3269d2}
+.card{background:#fff;border:1px solid #e8edf5;border-radius:25px;padding:15px;box-shadow:0 15px 45px #263d6410}
+.photo-wrap{position:relative;aspect-ratio:4/3;overflow:hidden;border-radius:18px;background:linear-gradient(145deg,#dce7fa,#eef1f8);display:grid;place-items:center}
+#player-photo{width:100%;height:100%;object-fit:cover;display:none}
+#player-photo.loaded{display:block;animation:appear .35s ease both}
+@keyframes appear{from{opacity:0;transform:scale(1.035)}to{opacity:1;transform:scale(1)}}
+.cover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(145deg,#253b62,#18263f);color:#fff;text-align:center;transition:opacity .25s}
+.cover.hidden{opacity:0;pointer-events:none}
+.cover .question{font-size:76px;font-weight:900;line-height:1}
+.cover p{margin:0;color:#c9d7f1;font-size:13px}
+.photo-fallback{display:none;color:#52627b;text-align:center;padding:20px;font-size:14px}
+.photo-fallback.show{display:block}
+.reveal{position:absolute;z-index:2;bottom:14px;left:50%;transform:translateX(-50%);border:0;border-radius:999px;padding:12px 24px;background:#fff;color:#263b60;font-size:14px;font-weight:900;box-shadow:0 5px 18px #0003;white-space:nowrap}
+.reveal:active{transform:translateX(-50%) scale(.97)}
+.cover.hidden .reveal{display:none}
+.section-title{margin:19px 2px 10px;font-size:14px;font-weight:900;color:#64738a}
+.input-row{display:flex;gap:8px}
+input{min-width:0;flex:1;border:1.5px solid #e0e6f0;border-radius:14px;padding:15px 14px;background:#fbfcff;color:#172033;font:inherit;font-size:16px;outline:none}
+input:focus{border-color:#6d98ee;box-shadow:0 0 0 3px #6d98ee20}
+.submit{border:0;border-radius:14px;padding:0 20px;background:#3975e8;color:white;font:inherit;font-weight:850;white-space:nowrap}
+.submit:disabled{opacity:.5}
+.feedback{min-height:23px;margin:10px 3px 0;font-size:13px;color:#77849a}
+.feedback.good{color:#178454;font-weight:800}.feedback.bad{color:#d45b68}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.info{padding:13px;border:1px solid #edf0f6;border-radius:15px;background:#fafbfe;min-height:72px}
+.info.wide{grid-column:1/-1}
+.info .label{font-size:11px;color:#8b97aa;font-weight:800;margin-bottom:6px}
+.info .value{font-size:14px;line-height:1.5;font-weight:800;color:#29364c;overflow-wrap:anywhere}
+.career{font-size:13px!important;font-weight:650!important}
+.note{margin:15px 2px 0;color:#9aa4b4;font-size:11px;line-height:1.55}
+@media(max-width:380px){.card{padding:11px}.submit{padding:0 14px}.info{padding:11px}.logo{font-size:48px}}
+</style>
 </head>
 <body>
-  <main>
-    <div class="brand">뽀잉!</div>
-    <p class="subtitle">아무 생각 없이 눌러보세요.</p>
-    <section class="stage" id="stage" aria-live="polite">
-      <div class="placeholder" id="placeholder"><span>🎁</span>무엇이 나올지는 아무도 몰라요</div>
-      <img id="picture" alt="무작위로 선택된 이미지">
-    </section>
-    <button id="popButton" type="button">뽀잉! ✨</button>
-    <p class="hint" id="hint">버튼을 누르면 이미지가 나타나요</p>
-  </main>
-  <script>
-    const button = document.getElementById('popButton');
-    const picture = document.getElementById('picture');
-    const placeholder = document.getElementById('placeholder');
-    const hint = document.getElementById('hint');
-    const stage = document.getElementById('stage');
-    let previousSeed = '';
-    function burst() {
-      const symbols = ['✨', '💫', '⭐', '🌸', '💖'];
-      for (let i = 0; i < 7; i++) {
-        const item = document.createElement('span');
-        item.className = 'spark';
-        item.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-        item.style.left = (8 + Math.random() * 84) + '%';
-        item.style.top = (12 + Math.random() * 76) + '%';
-        stage.appendChild(item);
-        item.addEventListener('animationend', () => item.remove(), { once: true });
-      }
-    }
-    function nextSeed() {
-      let seed;
-      do { seed = Math.random().toString(36).slice(2, 12); } while (seed === previousSeed);
-      previousSeed = seed;
-      return seed;
-    }
-    button.addEventListener('click', () => {
-      button.disabled = true;
-      hint.textContent = '두근두근…';
-      const seed = nextSeed();
-      const url = 'https://picsum.photos/seed/' + seed + '/900/900';
-      const nextImage = new Image();
-      nextImage.onload = () => {
-        picture.src = url;
-        picture.classList.remove('show');
-        void picture.offsetWidth;
-        picture.classList.add('show');
-        placeholder.hidden = true;
-        burst();
-        hint.textContent = '이번 뽀잉은 이거!';
-        button.disabled = false;
-      };
-      nextImage.onerror = () => {
-        hint.textContent = '이미지를 불러오지 못했어요. 한 번 더 뽀잉!';
-        button.disabled = false;
-      };
-      nextImage.src = url;
-    });
-  </script>
+<main>
+<header>
+  <div class="logo">뽀잉!</div>
+  <p class="subtitle">사진과 선수 정보를 보고 정답을 맞혀보세요</p>
+</header>
+<div class="topline"><span id="round-label">PLAYER QUIZ</span><span class="score">정답 <b id="score">0</b>개</span></div>
+<section class="card">
+  <div class="photo-wrap">
+    <img id="player-photo" alt="정답 축구선수 사진">
+    <div class="photo-fallback" id="photo-fallback">선수 사진을 불러오지 못했어요.<br>정보를 보고 맞혀보세요!</div>
+    <div class="cover" id="cover">
+      <div class="question">?</div>
+      <p>사진은 아직 비밀이에요</p>
+      <button class="reveal" id="reveal" type="button">사진 보기 👀</button>
+    </div>
+  </div>
+
+  <div class="section-title">이 선수는 누구일까요?</div>
+  <form class="input-row" id="guess-form">
+    <input id="guess" type="text" placeholder="선수 이름 입력 (한글 / 영어)" autocomplete="off" autocapitalize="off">
+    <button class="submit" id="submit" type="submit">정답 확인</button>
+  </form>
+  <p class="feedback" id="feedback" aria-live="polite">선수 정보를 살펴보고 이름을 입력하세요.</p>
+
+  <div class="section-title">선수 정보</div>
+  <div class="info-grid">
+    <div class="info"><div class="label">국적</div><div class="value" id="nationality">-</div></div>
+    <div class="info"><div class="label">선수 상태</div><div class="value" id="status">-</div></div>
+    <div class="info wide"><div class="label">주요 커리어</div><div class="value career" id="career">-</div></div>
+    <div class="info"><div class="label">키</div><div class="value" id="height">-</div></div>
+    <div class="info"><div class="label">몸무게</div><div class="value" id="weight">-</div></div>
+  </div>
+</section>
+<p class="note">선수 정보의 키와 몸무게는 공개 프로필에 기재된 대표 수치이며, 시기와 출처에 따라 차이가 있을 수 있어요. 사진은 위키백과에서 불러옵니다.</p>
+</main>
+<script>
+const players = [
+ {name:"리오넬 메시",aliases:["lionel messi","messi","메시"],wiki:"Lionel Messi",nation:"아르헨티나",status:"현역",career:"FC 바르셀로나 · 파리 생제르맹 · 인터 마이애미 · 2022 월드컵 우승 · 발롱도르 8회",height:170,weight:72},
+ {name:"크리스티아누 호날두",aliases:["cristiano ronaldo","ronaldo","호날두"],wiki:"Cristiano Ronaldo",nation:"포르투갈",status:"현역",career:"맨체스터 유나이티드 · 레알 마드리드 · 유벤투스 · UEFA 유로 2016 우승 · 발롱도르 5회",height:187,weight:83},
+ {name:"네이마르",aliases:["neymar","neymar jr","네이마르 주니오르"],wiki:"Neymar",nation:"브라질",status:"현역",career:"산투스 · FC 바르셀로나 · 파리 생제르맹 · 2016 리우 올림픽 금메달 · UEFA 챔피언스리그 우승",height:175,weight:68},
+ {name:"킬리안 음바페",aliases:["kylian mbappe","mbappe","음바페"],wiki:"Kylian Mbappé",nation:"프랑스",status:"현역",career:"AS 모나코 · 파리 생제르맹 · 레알 마드리드 · 2018 월드컵 우승 · 2022 월드컵 골든부트",height:178,weight:75},
+ {name:"엘링 홀란",aliases:["erling haaland","haaland","홀란드","홀란"],wiki:"Erling Haaland",nation:"노르웨이",status:"현역",career:"보루시아 도르트문트 · 맨체스터 시티 · 2022-23 프리미어리그·챔피언스리그 우승",height:195,weight:88},
+ {name:"루카 모드리치",aliases:["luka modric","modric","모드리치"],wiki:"Luka Modrić",nation:"크로아티아",status:"현역",career:"토트넘 홋스퍼 · 레알 마드리드 · 2018 월드컵 준우승 · 2018 발롱도르",height:172,weight:66},
+ {name:"카림 벤제마",aliases:["karim benzema","benzema","벤제마"],wiki:"Karim Benzema",nation:"프랑스",status:"현역",career:"레알 마드리드 · 알이티하드 · UEFA 챔피언스리그 5회 우승 · 2022 발롱도르",height:185,weight:81},
+ {name:"모하메드 살라",aliases:["mohamed salah","mo salah","salah","살라"],wiki:"Mohamed Salah",nation:"이집트",status:"현역",career:"AS 로마 · 첼시 · 리버풀 · 프리미어리그 우승 · UEFA 챔피언스리그 우승",height:175,weight:71},
+ {name:"로베르트 레반도프스키",aliases:["robert lewandowski","lewandowski","레반도프스키"],wiki:"Robert Lewandowski",nation:"폴란드",status:"현역",career:"보루시아 도르트문트 · 바이에른 뮌헨 · FC 바르셀로나 · 2020 트레블",height:185,weight:81},
+ {name:"루이스 수아레스",aliases:["luis suarez","suarez","수아레스"],wiki:"Luis Suárez",nation:"우루과이",status:"현역",career:"리버풀 · FC 바르셀로나 · 아틀레티코 마드리드 · 2014-15 트레블",height:182,weight:86},
+ {name:"안드레스 이니에스타",aliases:["andres iniesta","iniesta","이니에스타"],wiki:"Andrés Iniesta",nation:"스페인",status:"은퇴",career:"FC 바르셀로나 · 2010 월드컵 우승 · UEFA 유로 2008·2012 우승 · 2015 트레블",height:171,weight:68},
+ {name:"사비 에르난데스",aliases:["xavi","xavi hernandez","사비","차비"],wiki:"Xavi",nation:"스페인",status:"은퇴",career:"FC 바르셀로나 · 2010 월드컵 우승 · UEFA 유로 2008·2012 우승 · 2011-12 트레블",height:170,weight:68},
+ {name:"지네딘 지단",aliases:["zinedine zidane","zidane","지단"],wiki:"Zinedine Zidane",nation:"프랑스",status:"은퇴",career:"유벤투스 · 레알 마드리드 · 1998 월드컵 우승 · UEFA 유로 2000 우승 · 1998 발롱도르",height:185,weight:80},
+ {name:"호나우지뉴",aliases:["ronaldinho","호나우딩요"],wiki:"Ronaldinho",nation:"브라질",status:"은퇴",career:"FC 바르셀로나 · AC 밀란 · 2002 월드컵 우승 · 2005 발롱도르",height:182,weight:80},
+ {name:"데이비드 베컴",aliases:["david beckham","beckham","베컴"],wiki:"David Beckham",nation:"잉글랜드",status:"은퇴",career:"맨체스터 유나이티드 · 레알 마드리드 · LA 갤럭시 · 1999 트레블",height:183,weight:75},
+ {name:"카카",aliases:["kaka","ricardo kaka","히카르두 카카"],wiki:"Kaká",nation:"브라질",status:"은퇴",career:"AC 밀란 · 레알 마드리드 · 2002 월드컵 우승 · 2007 UEFA 챔피언스리그 우승 · 2007 발롱도르",height:186,weight:82},
+ {name:"티에리 앙리",aliases:["thierry henry","henry","앙리"],wiki:"Thierry Henry",nation:"프랑스",status:"은퇴",career:"아스널 · FC 바르셀로나 · 1998 월드컵 우승 · UEFA 유로 2000 우승 · 2008-09 트레블",height:188,weight:83},
+ {name:"잔루이지 부폰",aliases:["gianluigi buffon","buffon","부폰"],wiki:"Gianluigi Buffon",nation:"이탈리아",status:"은퇴",career:"파르마 · 유벤투스 · 2006 월드컵 우승 · 세리에 A 우승 다수",height:192,weight:92},
+ {name:"손흥민",aliases:["son heung min","heung min son","sonny","손흥민"],wiki:"Son Heung-min",nation:"대한민국",status:"현역",career:"함부르크 · 레버쿠젠 · 토트넘 홋스퍼 · 2021-22 프리미어리그 공동 득점왕 · 2018 아시안게임 금메달",height:183,weight:78},
+ {name:"박지성",aliases:["park ji sung","ji sung park","박지성"],wiki:"Park Ji-sung",nation:"대한민국",status:"은퇴",career:"PSV 에인트호번 · 맨체스터 유나이티드 · 2008 UEFA 챔피언스리그 우승 · 2002 월드컵 4강",height:175,weight:72},
+ {name:"해리 케인",aliases:["harry kane","kane","케인"],wiki:"Harry Kane",nation:"잉글랜드",status:"현역",career:"토트넘 홋스퍼 · 바이에른 뮌헨 · 2018 월드컵 골든부트 · 분데스리가 우승",height:188,weight:86},
+ {name:"케빈 더브라위너",aliases:["kevin de bruyne","de bruyne","더브라위너","데브라이너"],wiki:"Kevin De Bruyne",nation:"벨기에",status:"현역",career:"첼시 · VfL 볼프스부르크 · 맨체스터 시티 · 프리미어리그 우승 다수 · UEFA 챔피언스리그 우승",height:181,weight:70},
+ {name:"비니시우스 주니오르",aliases:["vinicius junior","vinicius","비니시우스"],wiki:"Vinícius Júnior",nation:"브라질",status:"현역",career:"레알 마드리드 · UEFA 챔피언스리그 우승 · 라리가 우승",height:176,weight:73}
+];
+const $=id=>document.getElementById(id);
+let current=null,lastIndex=-1,score=0,answered=false;
+function normalize(value){return value.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9가-힣]/g,"")}
+function choosePlayer(){
+ let index; do{index=Math.floor(Math.random()*players.length)}while(index===lastIndex);
+ lastIndex=index;current=players[index];answered=false;
+ $("guess").value="";$("guess").disabled=false;$("submit").disabled=false;
+ $("feedback").className="feedback";$("feedback").textContent="선수 정보를 살펴보고 이름을 입력하세요.";
+ $("cover").classList.remove("hidden");$("player-photo").classList.remove("loaded");$("player-photo").removeAttribute("src");$("photo-fallback").classList.remove("show");
+ $("nationality").textContent=current.nation;$("status").textContent=current.status;
+ $("career").textContent=current.career;$("height").textContent=current.height+"cm";$("weight").textContent=current.weight+"kg";
+ $("round-label").textContent="PLAYER QUIZ · "+(score+1)+"번째 도전";
+ loadPlayerPhoto(current);
+}
+async function loadPlayerPhoto(player){
+ const img=$("player-photo");
+ try{
+  const response=await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(player.wiki));
+  if(!response.ok)throw new Error("photo unavailable");
+  const data=await response.json();
+  if(!data.thumbnail?.source)throw new Error("thumbnail unavailable");
+  const test=new Image();
+  test.onload=()=>{if(current===player){img.src=test.src;img.classList.add("loaded")}};
+  test.onerror=()=>{if(current===player)$("photo-fallback").classList.add("show")};
+  test.src=data.thumbnail.source;
+ }catch(error){if(current===player)$("photo-fallback").classList.add("show")}
+}
+$("reveal").addEventListener("click",()=>{
+ $("cover").classList.add("hidden");
+ if(!$("player-photo").classList.contains("loaded"))$("photo-fallback").classList.add("show");
+});
+$("guess-form").addEventListener("submit",event=>{
+ event.preventDefault();if(answered)return;
+ const raw=$("guess").value.trim();
+ if(!raw){$("feedback").className="feedback bad";$("feedback").textContent="선수 이름을 먼저 입력해 주세요.";return}
+ const accepted=[current.name,...current.aliases].map(normalize);
+ if(accepted.includes(normalize(raw))){
+  answered=true;score++;$("score").textContent=score;
+  $("feedback").className="feedback good";$("feedback").textContent="정답! "+current.name+" 선수입니다. 다음 선수로 넘어갑니다!";
+  $("guess").disabled=true;$("submit").disabled=true;
+  setTimeout(choosePlayer,1400);
+ }else{
+  $("feedback").className="feedback bad";$("feedback").textContent="아쉽지만 정답이 아니에요. 다시 생각해 보세요!";
+  $("guess").select();
+ }
+});
+choosePlayer();
+</script>
 </body>
 </html>
