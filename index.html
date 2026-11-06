@@ -132,7 +132,7 @@ async function loadPlayerPhoto(player){
   const data=await response.json();
   if(!data.thumbnail?.source)throw new Error("thumbnail unavailable");
   const test=new Image();
-  test.onload=()=>{if(current===player){img.src=test.src;img.classList.add("loaded")}};
+  test.onload=()=>{if(current===player){img.src=test.src;img.classList.add("loaded");$("photo-fallback").classList.remove("show")}};
   test.onerror=()=>{if(current===player)$("photo-fallback").classList.add("show")};
   test.src=data.thumbnail.source;
  }catch(error){if(current===player)$("photo-fallback").classList.add("show")}
